@@ -18,7 +18,7 @@ uses
 
 type
 
-  TEndpointType = (etOllama, etCompletion, etChatCompletion);
+  TEndpointType = (etUnsupported, etOllama, etCompletion, etChatCompletion);
 
   TLLMSettings = record
     EndPoint: string;
@@ -95,6 +95,7 @@ resourcestring
   sLLMBusy = 'The LLM client is busy';
   sNoAPIKey = 'The API key is missing';
   sNoResponse = 'No response from the LLM Server';
+  sUnsupportedEndpoint = 'The endpoint is not supported';
   sUnexpectedResponse = 'Unexpected response from the LLM Server';
 
 // will crypt A..Z, a..z, 0..9 characters by rotating
@@ -120,19 +121,18 @@ end;
 
 procedure TLLMChat.Ask(const Question: string);
 var
+  ErrMsg: string;
   Params: string;
 begin
-  if FIsBusy then
-  begin
-    if Assigned(FOnLLMError) then
-      FOnLLMError(Self, sLLMBusy);
-    Exit;
-  end;
+  if FIsBusy then ErrMsg := sLLMBusy;
+  if not Settings.IsLocal and (Settings.ApiKey = '' ) then ErrMsg := sNoAPIKey;
+  FEndPointType := Settings.EndpointType;
+  if FEndPointType = etUnsupported then ErrMsg := sUnsupportedEndpoint;
 
-  if not Settings.IsLocal and (Settings.ApiKey = '' )then
+  if ErrMsg <> '' then
   begin
     if Assigned(FOnLLMError) then
-      FOnLLMError(Self, sNoAPIKey);
+      FOnLLMError(Self, ErrMsg);
     Exit;
   end;
 
@@ -142,7 +142,6 @@ begin
   FLastPrompt := Question;
   FIsBusy := True;
 
-  FEndPointType := Settings.EndpointType;
   if FEndpointType = etChatCompletion then
     Params := ChatCompletionParams(Question)
   else
@@ -415,8 +414,10 @@ function TLLMSettings.EndpointType: TEndpointType;
 begin
   if IsLocal then
     Result := etOllama
-  else if EndPoint.Contains('chat') then
+  else if EndPoint.EndsWith('chat/completions') then
     Result := etChatCompletion
+  else if EndPoint.EndsWith('completions') then
+    Result := etCompletion
   else
     Result := etCompletion;
 end;

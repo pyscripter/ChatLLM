@@ -314,7 +314,6 @@ begin
     AResponse.ContentStream.Read(ResponseData, AResponse.ContentStream.Size);
     var JsonResponse := TJsonValue.ParseJSONValue(ResponseData, 0);
     try
-      ErrMsg := JsonResponse.ToJSON;
       if not (JsonResponse.TryGetValue('error.message', ErrMsg)
         or JsonResponse.TryGetValue('error', ErrMsg))
       then
@@ -334,7 +333,6 @@ begin
         if Assigned(FContext) then
           FContext.Owned := False;
       end;
-      //Msg := JsonResponse.ToJSON;
     finally
       JsonResponse.Free;
     end;

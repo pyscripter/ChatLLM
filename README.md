@@ -3,7 +3,7 @@
 ChatLLM is a simple Delphi application for chatting with Large Language Models (LLMs).  Its primary purpose is to act as a coding assistant.
 
 ## Features
-- Supports both cloud based LLM models [ChatGPT](https://openai.com/chatgpt) and local models using [Ollama](https://github.com/ollama/ollama).
+- Supports both cloud based LLM models ([ChatGPT](https://openai.com/chatgpt)) and local models using [Ollama](https://github.com/ollama/ollama).
 - Supports both the legacy [completions](https://platform.openai.com/docs/api-reference/completions) and the [chat/completions] (https://platform.openai.com/docs/api-reference/chat) API endpoints.
 - The chat is organized around multiple topics.
 - Can save and restore the chat history and settings.
@@ -11,7 +11,7 @@ ChatLLM is a simple Delphi application for chatting with Large Language Models (
 - Syntax highlighting of code (python and pascal).
 - High-DPI awareness.
 
-The application uses standard HTTP client and JSON components from the Delphi RTL and can be easily integrated in other Delphi application.
+The application uses standard HTTP client and JSON components from the Delphi RTL and can be easily integrated in other Delphi applications.
 
 ## Usage
 
@@ -53,4 +53,5 @@ The chat is organized around topics.   You can create new topics and back and fo
 
 - [SpTBXLib](https://github.com/SilverpointDev/sptbxlib)
 - [SVGIconImageList](https://github.com/EtheaDev/SVGIconImageList)
+- [SynEdit](https://github.com/pyscripter/SynEdit)
 

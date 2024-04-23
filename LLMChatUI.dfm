@@ -48,8 +48,6 @@ object LLMChatForm: TLLMChatForm
       Font.Height = -13
       Font.Name = 'Consolas'
       Font.Style = []
-      Lines.Strings = (
-        'Show me code to calculate prime numbers up to a given number')
       ParentFont = False
       PlainText = True
       ScrollBars = ssVertical
@@ -286,6 +284,7 @@ object LLMChatForm: TLLMChatForm
       Hint = 'Ask question'
       ImageIndex = 4
       ImageName = 'ChatQuestion'
+      OnExecute = actAskQuestionExecute
     end
   end
   object ApplicationEvents: TApplicationEvents

@@ -84,9 +84,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure reQuestionKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure sbAskClick(Sender: TObject);
     procedure AcceptSettings(Sender: TObject; var NewText: string; var
         Accept: Boolean);
+    procedure actAskQuestionExecute(Sender: TObject);
     procedure actChatNewExecute(Sender: TObject);
     procedure actChatNextExecute(Sender: TObject);
     procedure actChatPreviousExecute(Sender: TObject);
@@ -362,15 +362,7 @@ procedure TLLMChatForm.reQuestionKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   if (ssShift in Shift) and  (Key = vkReturn) then
-    SbAskClick(Self);
-end;
-
-procedure TLLMChatForm.sbAskClick(Sender: TObject);
-begin
-  if reQuestion.Text = '' then
-    Exit;
-  aiBusy.Animate := True;
-  LLMChat.Ask(reQuestion.Text);
+    actAskQuestion.Execute;
 end;
 
 procedure TLLMChatForm.AcceptSettings(Sender: TObject; var NewText:
@@ -396,6 +388,14 @@ begin
     on E: Exception do
       MessageDlg(E.Message, TMsgDlgType.mtError, [TMsgDlgBtn.mbOK], 0);
   end;
+end;
+
+procedure TLLMChatForm.actAskQuestionExecute(Sender: TObject);
+begin
+  if reQuestion.Text = '' then
+    Exit;
+  aiBusy.Animate := True;
+  LLMChat.Ask(reQuestion.Text);
 end;
 
 procedure TLLMChatForm.actChatNewExecute(Sender: TObject);

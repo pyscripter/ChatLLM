@@ -53,6 +53,7 @@ object LLMChatForm: TLLMChatForm
       ScrollBars = ssVertical
       SpellChecking = True
       TabOrder = 0
+      OnChange = reQuestionChange
       OnKeyDown = reQuestionKeyDown
     end
     object aiBusy: TActivityIndicator
@@ -60,6 +61,21 @@ object LLMChatForm: TLLMChatForm
       Top = 49
       Anchors = [akRight, akBottom]
       IndicatorType = aitSectorRing
+    end
+    object lblTextHint: TSpTBXLabel
+      Left = 8
+      Top = 6
+      Width = 111
+      Height = 19
+      Caption = 'Type a question'
+      AutoSize = False
+      Enabled = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clGrayText
+      Font.Height = -13
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
     end
   end
   object ScrollBox: TScrollBox

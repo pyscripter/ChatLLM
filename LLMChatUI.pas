@@ -78,6 +78,7 @@ type
     popTextMenu: TPopupMenu;
     Copy1: TMenuItem;
     actAskQuestion: TAction;
+    lblTextHint: TSpTBXLabel;
     procedure actChatSaveExecute(Sender: TObject);
     procedure ApplicationEventsMessage(var Msg: TMsg; var Handled: Boolean);
     procedure FormDestroy(Sender: TObject);
@@ -93,6 +94,7 @@ type
     procedure actChatRemoveExecute(Sender: TObject);
     procedure actCopyTextExecute(Sender: TObject);
     procedure ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
+    procedure reQuestionChange(Sender: TObject);
     procedure SpTBXSubmenuItem1InitPopup(Sender: TObject; PopupView: TTBView);
   private
     procedure QPanelResize(Sender: TObject);
@@ -332,6 +334,8 @@ end;
 procedure TLLMChatForm.FormShow(Sender: TObject);
 begin
   DisplayActiveChatTopic;
+  LblTextHint.Font.Color := StyleServices.GetSystemColor(clGrayText);
+  LblTextHint.Color := StyleServices.GetSystemColor(clWindow);
 end;
 
 procedure TLLMChatForm.OnLLMError(Sender: TObject; const Error: string);
@@ -442,6 +446,11 @@ begin
   actChatNew.Enabled := ScrollBox.ControlCount > 0;
   actChatNext.Enabled := LLMChat.ActiveTopicIndex < High(LLMChat.ChatTopics);
   actChatPrevious.Enabled := LLMChat.ActiveTopicIndex > 0;
+end;
+
+procedure TLLMChatForm.reQuestionChange(Sender: TObject);
+begin
+  lblTextHint.Visible := reQuestion.Text = '';
 end;
 
 procedure TLLMChatForm.SpTBXSubmenuItem1InitPopup(Sender: TObject; PopupView:

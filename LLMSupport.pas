@@ -18,7 +18,12 @@ uses
 
 type
 
-  TEndpointType = (etUnsupported, etOllama, etCompletion, etChatCompletion);
+  TEndpointType = (
+    etUnsupported,
+    etOllamaGenerate,
+    etOllamaChat,
+    etCompletion,
+    etChatCompletion);
 
   TLLMSettings = record
     EndPoint: string;
@@ -142,16 +147,16 @@ begin
   FLastPrompt := Question;
   FIsBusy := True;
 
-  if FEndpointType = etChatCompletion then
-    Params := ChatCompletionParams(Question)
-  else
-    Params := CompletionParams(Question);
+  case FEndPointType of
+    etOllamaGenerate, etCompletion: Params := CompletionParams(Question);
+    etOllamaChat, etChatCompletion: Params := ChatCompletionParams(Question);
+  end;
 
   FSourceStream.Clear;
   FSourceStream.WriteString(Params);
   FSourceStream.Position := 0;
 
-  if not (FEndPointType = etOllama) then
+  if not (FEndPointType in [etOllamaGenerate, etOllamaChat]) then
     FHttpClient.CustomHeaders['Authorization'] := 'Bearer ' + Settings.ApiKey;
   FHttpClient.CustomHeaders['Content-Type'] := 'application/json';
   FHttpClient.CustomHeaders['AcceptEncoding'] := 'deflate, gzip;q=1.0, *;q=0.5';
@@ -174,7 +179,17 @@ begin
   try
     JSON.AddPair('model', Settings.Model);
     JSON.AddPair('stream', False);
-    JSON.AddPair('max_tokens', Settings.MaxTokens);
+
+    case FEndPointType of
+      etOllamaGenerate:
+        begin
+          var Options := TJSONObject.Create;
+          Options.AddPair('num_predict', Settings.MaxTokens);
+          JSON.AddPair('options', Options);
+        end;
+      etCompletion:
+        JSON.AddPair('max_tokens', Settings.MaxTokens);
+    end;
 
     Messages := TJSONArray.Create;
     // start with the system message
@@ -217,7 +232,7 @@ begin
     JSON.AddPair('stream', False);
     JSON.AddPair('prompt', Prompt);
     case FEndPointType of
-      etOllama:
+      etOllamaGenerate:
         begin
           JSON.AddPair('system', Settings.SystemPrompt);
           //JSON.AddPair('system', FSystemPrompt {+ ' Please surround code with triple ticks'});
@@ -267,7 +282,9 @@ procedure TLLMChat.LoadChat(const FName: string);
 begin
   if FileExists(FName) then
   begin
-    ChatTopics := FSerializer.Deserialize<TArray<TChatTopic>>(TFile.ReadAllText(FName));
+    ChatTopics :=
+      FSerializer.Deserialize<TArray<TChatTopic>>(
+      TFile.ReadAllText(FName, TEncoding.UTF8));
     ActiveTopicIndex := High(ChatTopics);
   end;
 end;
@@ -321,11 +338,13 @@ begin
             ResponseOK := JsonResponse.TryGetValue('choices[0].message.content', Msg);
           etCompletion:
             ResponseOK := JsonResponse.TryGetValue('choices[0].text', Msg);
-          etOllama:
+          etOllamaGenerate:
             ResponseOK := JsonResponse.TryGetValue('response', Msg);
+          etOllamaChat:
+            ResponseOK := JsonResponse.TryGetValue('message.content', Msg);
         end;
 
-      if FEndPointType = etOllama then
+      if FEndPointType = etOllamaGenerate then
       begin
         ClearContext;
         FContext := JsonResponse.FindValue('context');
@@ -412,13 +431,17 @@ end;
 
 function TLLMSettings.EndpointType: TEndpointType;
 begin
+  Result := etUnsupported;
   if IsLocal then
-    Result := etOllama
+  begin
+    if Endpoint.EndsWith('api/generate') then
+      Result := etOllamaGenerate
+    else if Endpoint.EndsWith('api/chat') then
+      Result := etOllamaChat;
+  end
   else if EndPoint.EndsWith('chat/completions') then
     Result := etChatCompletion
   else if EndPoint.EndsWith('completions') then
-    Result := etCompletion
-  else
     Result := etCompletion;
 end;
 

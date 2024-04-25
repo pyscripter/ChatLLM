@@ -112,7 +112,7 @@ type
 const
   GPT_4_Settings: TLLMSettings = (
     EndPoint: 'https://api.openai.com/v1/chat/completions';
-    ApiKey: 'Key needed';
+    ApiKey: '';
     Model: 'gpt-4';
     TimeOut: 20000;
     MaxTokens: 1000;
@@ -120,7 +120,7 @@ const
 
   GPT_35_Settings: TLLMSettings = (
     EndPoint: 'https://api.openai.com/v1/chat/completions';
-    ApiKey: 'Key needed';
+    ApiKey: '';
     Model: 'gpt-3.5-turbo';
     TimeOut: 20000;
     MaxTokens: 1000;
@@ -128,14 +128,14 @@ const
 
   GPT_35_Instruct_Settings: TLLMSettings = (
     EndPoint: 'https://api.openai.com/v1/completions';
-    ApiKey: 'Key needed';
+    ApiKey: '';
     Model: 'gpt-3.5-turbo-instruct';
     TimeOut: 20000;
     MaxTokens: 1000;
     SystemPrompt: '');
 
   OllamaSettings: TLLMSettings = (
-    EndPoint: 'http://localhost:11434/api/generate';
+    EndPoint: 'http://localhost:11434/api/chat';
     ApiKey: '';
     Model: 'codegema';
     //Model: 'starcoder2';
@@ -304,6 +304,7 @@ begin
   var lblQuestion := TSpTBXLabel.Create(Self);
   with lblQuestion do begin
     Font.Name := 'Consolas';
+    Font.PixelsPerInch := 96;
     Font.Size := 10;
     Wrapping := twWrap;
     Parent := pnlQuestion;
@@ -365,7 +366,7 @@ end;
 procedure TLLMChatForm.reQuestionKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
-  if (ssShift in Shift) and  (Key = vkReturn) then
+  if (Shift * [ssShift, ssCtrl] <> []) and  (Key = vkReturn) then
     actAskQuestion.Execute;
 end;
 

@@ -3,27 +3,38 @@
 ChatLLM is a simple Delphi application for chatting with Large Language Models (LLMs).  Its primary purpose is to act as a coding assistant.
 
 ## Features
-- Supports both cloud based LLM models ([ChatGPT](https://openai.com/chatgpt)) and local models using [Ollama](https://github.com/ollama/ollama).
+- Supports both cloud based LLM models ([ChatGPT](https://openai.com/chatgpt) and [Gemini](https://gemini.google.com/)) and local models using [Ollama](https://github.com/ollama/ollama).
 - Supports both the legacy [completions](https://platform.openai.com/docs/api-reference/completions) and the [chat/completions] (https://platform.openai.com/docs/api-reference/chat) API endpoints.
 - The chat is organized around multiple topics.
 - Can save and restore the chat history and settings.
 - Streamlined user interface.
 - Syntax highlighting of code (python and pascal).
+- Markdown output rendering.
 - High-DPI awareness.
 
 The application uses standard HTTP client and JSON components from the Delphi RTL and can be easily integrated in other Delphi applications.
 
 ## Usage
 
-### Chat with Openai cloud based models such as gpt-4
+### Chat with OpenAI cloud based models such as gpt-4
 The screenshot below shows the settings for using gpt3.5-turbo which offers a good balance between cost and performance.
 
 ![image](https://github.com/pyscripter/ChatLLM/assets/1311616/ea5f3849-6ace-4186-a094-252e6cc181a5)
 
 **Settings**:
 - Endpoint:  The base URL for accessing the openai API
-- Model: The openai model you want to use.
-- API key: You need to get one from https://platform.openai.com/api-keys to use the openai models
+- Model: The OpenAI model you want to use.
+- API key: You need to get one from https://platform.openai.com/api-keys to use the OpenAI models
+- Timeout:  How long you are prepared to wait for an answer.
+- Maximum number of response tokens: An integer value that determines the maximum length of the response.
+- System prompt: A string providing context to the LLM, e.g. "You are my python coding assistant".
+
+### Chat with Gemini cloud based models such as gemini-1.5-flash
+
+**Settings**:
+- Endpoint:  The base URL for accessing the openai API
+- Model: The Gemini model you want to use.
+- API key: You need to get one from https://aistudio.google.com/app/apikey to use the Gemini models
 - Timeout:  How long you are prepared to wait for an answer.
 - Maximum number of response tokens: An integer value that determines the maximum length of the response.
 - System prompt: A string providing context to the LLM, e.g. "You are my python coding assistant".

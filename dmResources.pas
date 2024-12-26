@@ -13,7 +13,6 @@ type
     LLMImages: TSVGIconImageCollection;
     SynMultiSyn: TSynMultiSyn;
     SynPythonSyn: TSynPythonSyn;
-    SynGeneralSyn: TSynGeneralSyn;
     SynPasSyn: TSynPasSyn;
     procedure DataModuleCreate(Sender: TObject);
   private

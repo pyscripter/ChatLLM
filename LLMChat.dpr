@@ -6,7 +6,8 @@ uses
   dmResources in 'dmResources.pas' {Resources: TDataModule},
   Vcl.Themes,
   Vcl.Styles,
-  LLMSupport in 'LLMSupport.pas';
+  LLMSupport in 'LLMSupport.pas',
+  SynMarkdownViewer in 'SynMarkdownViewer.pas';
 
 {$R *.res}
 

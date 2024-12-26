@@ -111,26 +111,25 @@ object LLMChatForm: TLLMChatForm
     Width = 852
     Height = 531
     HorzScrollBar.Visible = False
+    VertScrollBar.Smooth = True
     VertScrollBar.Tracking = True
     Align = alClient
-    ParentBackground = True
     TabOrder = 1
     StyleElements = [seBorder]
-    StyleName = 'Windows'
     object QAStackPanel: TStackPanel
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 842
+      Left = 0
+      Top = 0
+      Width = 848
       Height = 23
       Align = alTop
       AutoSize = True
       BevelOuter = bvNone
       ControlCollection = <>
-      DoubleBuffered = True
+      FullRepaint = False
       HorizontalPositioning = sphpFill
-      ParentColor = True
-      ParentDoubleBuffered = False
+      ParentBackground = False
+      StyleElements = []
+      StyleName = 'Windows'
       TabOrder = 0
     end
   end

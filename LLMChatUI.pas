@@ -26,6 +26,7 @@ uses
   Vcl.WinXCtrls,
   Vcl.ActnList,
   Vcl.AppEvnts,
+  Vcl.StdActns,
   SynEdit,
   SynEditHighlighter,
   SynHighlighterMulti,
@@ -37,7 +38,7 @@ uses
   TB2Toolbar,
   TB2Item,
   SpTBXEditors,
-  LLMSupport, Vcl.StdActns;
+  LLMSupport;
 
 type
   // Interposer class to prevent the auto-scrolling when clicking
@@ -177,10 +178,9 @@ end;
 
 procedure TLLMChatForm.PanelQAResize(Sender: TObject);
 begin
-//  var pnlAnswer := Sender as TSpTBXPanel;
-  var pnlAnswer := Sender as TPanel;
+  var pnlAnswer := Sender as TSpTBXPanel;
   var synAnswer := pnlAnswer.Controls[1] as TSynEdit;
-  var NewHeight := Max(MulDiv(30, CurrentPPI, 96), 2 * Margins.Bottom +
+  var NewHeight := Max(MulDiv(30, CurrentPPI, 96),
     synAnswer.DisplayRowCount * synAnswer.LineHeight);
   if NewHeight <> pnlAnswer.Height then
     pnlAnswer.Height := NewHeight;
@@ -220,24 +220,17 @@ end;
 
 procedure TLLMChatForm.DisplayQA(const QA, ImgName: string);
 begin
-  Color := StyleServices.GetSystemColor(clBtnFace);
-//  var PanelQA := TSpTBXPanel.Create(Self);
-  var PanelQA := TPanel.Create(Self);
+  QAStackPanel.Color := StyleServices.GetSystemColor(clBtnFace);
+  var PanelQA := TSpTBXPanel.Create(Self);
   with PanelQA do begin
     Name := 'PanelQA' + QAStackPanel.ControlCount.ToString;
-    //Color := StyleServices.GetSystemColor(clWindow);
+    Color := clNone;
     Anchors := [akLeft,akTop,akRight];
     Width := 570;
     Height := 50;
     Anchors := [akLeft, akTop, akRight];
-//    Borders := False;
+    Borders := False;
     AlignWithMargins := True;
-    ParentBackground := True;
-    ParentColor := True;
-    StyleElements := [];
-    StyleName := 'Windows';
-    PanelQA.BevelOuter := bvNone;
-    PanelQA.BevelInner := bvNone;
   end;
   var SvgImage := TSVGIconImage.Create(Self);
   with SvgImage do begin
@@ -263,8 +256,8 @@ begin
     Options := Options + [eoRightMouseMovesCursor];
     Highlighter := Resources.SynMultiSyn;
     Top := 0;
-    Left := 40;
-    Width := PanelQA.Width - 40;
+    Left := 35;
+    Width := PanelQA.Width - 35;
     Height := PanelQA.Height;
     Font.Name := 'Consolas';
     Font.Size := 10;
@@ -301,11 +294,18 @@ procedure TLLMChatForm.DisplayActiveChatTopic;
 begin
   ClearConversation;
   DisplayTopicTitle(LLMChat.ActiveTopic.Title);
-  for var QAItem in LLMChat.ActiveTopic.QAItems do
-  begin
-    DisplayQA(QAItem.Prompt, 'UserQuestion');
-    DisplayQA(QAItem.Answer, 'Assistant');
+
+  QAStackPanel.LockDrawing;
+  try
+    for var QAItem in LLMChat.ActiveTopic.QAItems do
+    begin
+      DisplayQA(QAItem.Prompt, 'UserQuestion');
+      DisplayQA(QAItem.Answer, 'Assistant');
+    end;
+  finally
+    QAStackPanel.UnlockDrawing;
   end;
+
   if SynQuestion.HandleAllocated then
     synQuestion.SetFocus;
 end;
@@ -343,8 +343,6 @@ begin
   SetQuestionTextHint;
   SkinManager.SkinsList.Clear;
   SpTBXSkinGroupItem1.Recreate;
-
-  TStyleManager.UseParentPaintBuffers := True;
 end;
 
 procedure TLLMChatForm.FormShow(Sender: TObject);
@@ -401,8 +399,10 @@ procedure TLLMChatForm.synQuestionKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   if (Shift * [ssShift, ssCtrl] <> []) and  (Key = vkReturn) then
+  begin
     actAskQuestion.Execute;
-  Key := 0;
+    Key := 0;
+  end;
 end;
 
 procedure TLLMChatForm.AcceptSettings(Sender: TObject; var NewText:

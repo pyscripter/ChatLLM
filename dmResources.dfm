@@ -1,9 +1,7 @@
 object Resources: TResources
   OnCreate = DataModuleCreate
-  Height = -1
-  HorizontalOffset = -1
-  VerticalOffset = -1
-  Width = -1
+  Height = 250
+  Width = 376
   object LLMImages: TSVGIconImageCollection
     SVGIconItems = <
       item
@@ -162,8 +160,8 @@ object Resources: TResources
           ' y="10.2" width="4.3" height="4.4"/>'#13#10'</svg>'#13#10
       end>
     ApplyFixedColorToRootOnly = True
-    Left = 65535
-    Top = 65535
+    Left = 15
+    Top = 15
   end
   object SynMultiSyn: TSynMultiSyn
     Schemes = <
@@ -195,15 +193,15 @@ object Resources: TResources
         MarkerAttri.Background = clNone
         SchemeName = 'Pascal'
       end>
-    Left = 65535
-    Top = 65535
+    Left = 23
+    Top = 111
   end
   object SynPythonSyn: TSynPythonSyn
-    Left = 65535
-    Top = 65535
+    Left = 103
+    Top = 111
   end
   object SynPasSyn: TSynPasSyn
-    Left = 65535
-    Top = 65535
+    Left = 191
+    Top = 111
   end
 end

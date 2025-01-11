@@ -334,11 +334,21 @@ begin
   // Restore settings and history
   var FileName := TPath.Combine(TPath.GetDirectoryName(Application.ExeName),
     'Chat history.json');
-  LLMChat.LoadChat(FileName);
+  try
+    LLMChat.LoadChat(FileName);
+  except
+     ShowMessage('Error in reading history');
+     DeleteFile(FileName);
+  end;
 
   FileName := TPath.Combine(TPath.GetDirectoryName(Application.ExeName),
     'Chat Settings.json');
-  LLMChat.LoadSettrings(FileName);
+  try
+    LLMChat.LoadSettrings(FileName);
+  except
+     ShowMessage('Error in reading settings');
+     DeleteFile(FileName);
+  end;
 
   SetQuestionTextHint;
   SkinManager.SkinsList.Clear;

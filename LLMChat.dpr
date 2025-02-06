@@ -6,15 +6,14 @@ uses
   dmResources in 'dmResources.pas' {Resources: TDataModule},
   Vcl.Themes,
   Vcl.Styles,
-  LLMSupport in 'LLMSupport.pas',
-  SynMarkdownViewer in 'SynMarkdownViewer.pas';
+  LLMSupport in 'LLMSupport.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  TStyleManager.TrySetStyle('Windows11 Impressive Light');
+  TStyleManager.TrySetStyle('Windows11 MineShaft');
   Application.CreateForm(TResources, Resources);
   Application.CreateForm(TLLMChatForm, LLMChatForm);
   Application.Run;

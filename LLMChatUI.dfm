@@ -14,7 +14,6 @@ object LLMChatForm: TLLMChatForm
   StyleElements = [seFont, seBorder]
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnShow = FormShow
   TextHeight = 15
   object pnlQuestion: TPanel
     Left = 0
@@ -100,37 +99,8 @@ object LLMChatForm: TLLMChatForm
           AnnPos = sbpFullWidth
           FullRow = False
         end>
-      SelectedColor.Alpha = 0.400000005960464500
       VisibleSpecialChars = []
       WordWrap = True
-    end
-  end
-  object ScrollBox: TScrollBox
-    Left = 0
-    Top = 34
-    Width = 852
-    Height = 531
-    HorzScrollBar.Visible = False
-    VertScrollBar.Smooth = True
-    VertScrollBar.Tracking = True
-    Align = alClient
-    TabOrder = 1
-    StyleElements = [seBorder]
-    object QAStackPanel: TStackPanel
-      Left = 0
-      Top = 0
-      Width = 848
-      Height = 23
-      Align = alTop
-      AutoSize = True
-      BevelOuter = bvNone
-      ControlCollection = <>
-      FullRepaint = False
-      HorizontalPositioning = sphpFill
-      ParentBackground = False
-      StyleElements = []
-      StyleName = 'Windows'
-      TabOrder = 0
     end
   end
   object Splitter: TSpTBXSplitter
@@ -210,26 +180,46 @@ object LLMChatForm: TLLMChatForm
         ImageName = 'Settings'
         Options = [tboDropdownArrow]
         OnInitPopup = spiSettingsInitPopup
+        object spiDeepSeek: TSpTBXItem
+          Caption = 'DeepSeek'
+          Hint = 'Use DeepSeek'
+          AutoCheck = True
+          GroupIndex = 1
+          ImageIndex = 14
+          ImageName = 'deepseek'
+          OnClick = mnProviderClick
+          OnDrawImage = LogoDrawImage
+        end
+        object spiGemini: TSpTBXItem
+          Caption = 'Gemini'
+          Hint = 'Use Gemini'
+          AutoCheck = True
+          GroupIndex = 1
+          ImageIndex = 15
+          ImageName = 'gemini'
+          OnClick = mnProviderClick
+          OnDrawImage = LogoDrawImage
+        end
         object spiOpenai: TSpTBXItem
           Caption = 'OpenAI'
           Hint = 'Use OpenAI'
           AutoCheck = True
           Checked = True
           GroupIndex = 1
+          ImageIndex = 16
+          ImageName = 'openai'
           OnClick = mnProviderClick
-        end
-        object spiGemini: TSpTBXItem
-          Caption = 'Gemini'
-          Hint = 'Use Gemini'
-          GroupIndex = 1
-          OnClick = mnProviderClick
+          OnDrawImage = LogoDrawImage
         end
         object spiOllama: TSpTBXItem
           Caption = 'Ollama'
           Hint = 'Use Ollama'
           AutoCheck = True
           GroupIndex = 1
+          ImageIndex = 13
+          ImageName = 'ollama'
           OnClick = mnProviderClick
+          OnDrawImage = LogoDrawImage
         end
         object SpTBXSeparatorItem6: TSpTBXSeparatorItem
         end
@@ -259,6 +249,10 @@ object LLMChatForm: TLLMChatForm
           ExtendedAccept = True
           OnAcceptText = AcceptSettings
         end
+        object spiTemperature: TSpTBXEditItem
+          EditCaption = 'Temperature:'
+          OnAcceptText = AcceptSettings
+        end
         object spiMaxTokens: TSpTBXEditItem
           EditCaption = 'Maximum number of response tokens:'
           ExtendedAccept = True
@@ -271,6 +265,20 @@ object LLMChatForm: TLLMChatForm
         end
       end
     end
+  end
+  object EdgeBrowser: TEdgeBrowser
+    Left = 0
+    Top = 34
+    Width = 852
+    Height = 531
+    Align = alClient
+    TabOrder = 3
+    AllowSingleSignOnUsingOSPrimaryAccount = False
+    TargetCompatibleBrowserVersion = '117.0.2045.28'
+    UserDataFolder = '%LOCALAPPDATA%\LLMChat\WebView2'
+    OnCreateWebViewCompleted = EdgeBrowserCreateWebViewCompleted
+    OnNavigationCompleted = EdgeBrowserNavigationCompleted
+    OnWebMessageReceived = EdgeBrowserWebMessageReceived
   end
   object vilImages: TVirtualImageList
     Images = <
@@ -338,6 +346,31 @@ object LLMChatForm: TLLMChatForm
         CollectionIndex = 12
         CollectionName = 'Styles'
         Name = 'Styles'
+      end
+      item
+        CollectionIndex = 13
+        CollectionName = 'ollama'
+        Name = 'ollama'
+      end
+      item
+        CollectionIndex = 14
+        CollectionName = 'deepseek'
+        Name = 'deepseek'
+      end
+      item
+        CollectionIndex = 15
+        CollectionName = 'gemini'
+        Name = 'gemini'
+      end
+      item
+        CollectionIndex = 16
+        CollectionName = 'openai'
+        Name = 'openai'
+      end
+      item
+        CollectionIndex = 17
+        CollectionName = 'Paste'
+        Name = 'Paste'
       end>
     ImageCollection = Resources.LLMImages
     Width = 24
@@ -439,14 +472,10 @@ object LLMChatForm: TLLMChatForm
       Category = 'Edit'
       Caption = '&Paste'
       Hint = 'Paste|Inserts Clipboard contents'
-      ImageIndex = 13
+      ImageIndex = 17
+      ImageName = 'Paste'
       ShortCut = 16470
     end
-  end
-  object AppEvents: TApplicationEvents
-    OnMessage = AppEventsMessage
-    Left = 24
-    Top = 216
   end
   object pmAsk: TSpTBXPopupMenu
     Images = vilImages

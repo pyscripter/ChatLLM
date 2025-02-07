@@ -27,6 +27,8 @@ competitively priced.
 
 **Settings**:
 
+![image](https://github.com/user-attachments/assets/c1b997f8-8279-4677-9ce7-ca6e58d3c142)
+
 - Endpoint:  The base URL for accessing the cloud API
 - Model: The model you want to use.  Example values:
     - Deepseek: deepseek-chat deepseek-reasoner
@@ -65,7 +67,10 @@ soved and then restored when you next start the application.  _Questions within 
 asked in the context of the previous questions and answers of that topic_.
 
 ## Screenshots
-![image](https://github.com/pyscripter/ChatLLM/assets/1311616/98eac838-1670-4dda-8b7b-ee21f3cd8b5d)
+
+![image](https://github.com/user-attachments/assets/39d825ae-0b72-4f05-9238-79563bec8871)
+
+![image](https://github.com/user-attachments/assets/23d842f3-b1ef-4561-92cd-b8554d25e110)
 
 ## Compilation requirements
 

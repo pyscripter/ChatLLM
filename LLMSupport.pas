@@ -351,7 +351,6 @@ end;
 
 procedure TLLMBase.OnRequestCompleted(const Sender: TObject;
   const AResponse: IHTTPResponse);
-
 var
   ResponseData: TBytes;
   ResponseOK: Boolean;
@@ -375,7 +374,7 @@ begin
           etOpenAIChatCompletion:
             begin
               ResponseOK := JsonResponse.TryGetValue('choices[0].message.content', Msg);
-              // for DeepSeek R1 model (deepseek-Reason)
+              // for DeepSeek R1 model (deepseek-reasoner)
               JsonResponse.TryGetValue('choices[0].message.reasoning_content', Reason);
             end;
           etOpenAICompletion:

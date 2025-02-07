@@ -423,14 +423,6 @@ object LLMChatForm: TLLMChatForm
       ImageName = 'ChatNext'
       OnExecute = actChatNextExecute
     end
-    object actCopyText: TAction
-      Category = 'Chat'
-      Caption = 'Copy '
-      Hint = 'Copy text'
-      ImageIndex = 9
-      ImageName = 'Copy'
-      OnExecute = actCopyTextExecute
-    end
     object actAskQuestion: TAction
       Category = 'Chat'
       Hint = 'Ask question'
@@ -453,12 +445,6 @@ object LLMChatForm: TLLMChatForm
       ImageIndex = 11
       ImageName = 'Cancel'
       OnExecute = actCancelRequestExecute
-    end
-    object actCopyCode: TAction
-      Category = 'Chat'
-      Caption = 'Copy Code'
-      Hint = 'Copy the python code'
-      OnExecute = actCopyCodeExecute
     end
     object actEditCopy: TEditCopy
       Category = 'Edit'
@@ -486,20 +472,6 @@ object LLMChatForm: TLLMChatForm
     end
     object mnPaste: TSpTBXItem
       Action = actEditPaste
-    end
-  end
-  object pmTextMenu: TSpTBXPopupMenu
-    Images = vilImages
-    OnPopup = pmTextMenuPopup
-    Left = 24
-    Top = 48
-    object mnCopyText: TSpTBXItem
-      Action = actCopyText
-    end
-    object SpTBXSeparatorItem5: TSpTBXSeparatorItem
-    end
-    object SpTBXItem1: TSpTBXItem
-      Action = actCopyCode
     end
   end
 end

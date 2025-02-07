@@ -75,23 +75,17 @@ type
     SpTBXSeparatorItem2: TSpTBXSeparatorItem;
     spiNewTopic: TSpTBXItem;
     spiRemoveTopic: TSpTBXItem;
-    actCopyText: TAction;
     actAskQuestion: TAction;
     synQuestion: TSynEdit;
     Splitter: TSpTBXSplitter;
     pmAsk: TSpTBXPopupMenu;
     mnCopy: TSpTBXItem;
     mnPaste: TSpTBXItem;
-    pmTextMenu: TSpTBXPopupMenu;
-    mnCopyText: TSpTBXItem;
     actTopicTitle: TAction;
     SpTBXSeparatorItem4: TSpTBXSeparatorItem;
     spiTitle: TSpTBXItem;
     actCancelRequest: TAction;
     spiCancel: TTBItem;
-    actCopyCode: TAction;
-    SpTBXItem1: TSpTBXItem;
-    SpTBXSeparatorItem5: TSpTBXSeparatorItem;
     SpTBXSeparatorItem6: TSpTBXSeparatorItem;
     spiOpenai: TSpTBXItem;
     spiOllama: TSpTBXItem;
@@ -116,8 +110,6 @@ type
     procedure actChatNextExecute(Sender: TObject);
     procedure actChatPreviousExecute(Sender: TObject);
     procedure actChatRemoveExecute(Sender: TObject);
-    procedure actCopyCodeExecute(Sender: TObject);
-    procedure actCopyTextExecute(Sender: TObject);
     procedure actTopicTitleExecute(Sender: TObject);
     procedure ChatActionListUpdate(Action: TBasicAction; var Handled: Boolean);
     procedure EdgeBrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser;
@@ -127,7 +119,6 @@ type
     procedure EdgeBrowserWebMessageReceived(Sender: TCustomEdgeBrowser; Args:
         TWebMessageReceivedEventArgs);
     procedure mnProviderClick(Sender: TObject);
-    procedure pmTextMenuPopup(Sender: TObject);
     procedure LogoDrawImage(Sender: TObject; ACanvas: TCanvas; State:
         TSpTBXSkinStatesType; const PaintStage: TSpTBXPaintStage; var AImageList:
         TCustomImageList; var AImageIndex: Integer; var ARect: TRect; var
@@ -147,7 +138,6 @@ type
     function MarkdownToHTML(const MD: string): string;
     function NavigateToString(Html: string): Boolean;
     procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
-    function GetCodeBlock(Editor: TSynEdit): string;
     procedure DisplayTopicTitle(Title: string);
     procedure DisplayQA(const Prompt, Answer, Reason: string);
     procedure ClearConversation;
@@ -644,35 +634,6 @@ begin
   StyleForm;
 end;
 
-function TLLMChatForm.GetCodeBlock(Editor: TSynEdit): string;
-var
-  Token: String;
-  Attri: TSynHighlighterAttributes;
-begin
-  Result := '';
-  var BC := Editor.CaretXY;
-
-  Editor.GetHighlighterAttriAtRowCol(BC, Token, Attri);
-  if Resources.SynMultiSyn.CurrScheme < 0 then // not inside python code
-    Exit;
-
-  var StartLine := BC.Line;
-  var EndLine := BC.Line;
-
-  while (StartLine > 1) and  not Editor.Lines[StartLine -1].StartsWith('```') do
-    Dec(StartLine);
-  while (EndLine < Editor.Lines.Count) and not Editor.Lines[EndLine -1].StartsWith('```') do
-    Inc(EndLine);
-
-  Result := '';
-  for var Line := StartLine + 1 to EndLine - 1 do
-  begin
-    Result := Result + Editor.Lines[Line - 1];
-    if Line < EndLine - 1 then
-      Result := Result + sLineBreak;
-  end;
-end;
-
 procedure TLLMChatForm.OnLLMError(Sender: TObject; const Error: string);
 begin
   MessageDlg(Error, TMsgDlgType.mtError, [TMsgDlgBtn.mbOK], 0);
@@ -771,30 +732,6 @@ begin
   DisplayActiveChatTopic;
 end;
 
-procedure TLLMChatForm.actCopyCodeExecute(Sender: TObject);
-begin
-  if not (pmTextMenu.PopupComponent is TSynEdit) then
-    Exit;
-
-  var Editor := TSynEdit(pmTextMenu.PopupComponent);
-  var Code := GetCodeBlock(Editor);
-  if Code <> '' then
-    Clipboard.AsText := Code;
-end;
-
-procedure TLLMChatForm.actCopyTextExecute(Sender: TObject);
-begin
-  if pmTextMenu.PopupComponent is TSynEdit then with TSynEdit(pmTextMenu.PopupComponent) do
-  begin
-    if SelAvail then
-      Clipboard.AsText := SelText
-    else
-      Clipboard.AsText := Text;
-  end
-  else if pmTextMenu.PopupComponent is TSpTBXLabel then
-    Clipboard.AsText := TSpTBXLabel(pmTextMenu.PopupComponent).Caption;
-end;
-
 procedure TLLMChatForm.actTopicTitleExecute(Sender: TObject);
 var
   Title: string;
@@ -877,23 +814,6 @@ begin
 
   EdgeBrowser.NavigateToString(Html);
   Result := True;
-end;
-
-procedure TLLMChatForm.pmTextMenuPopup(Sender: TObject);
-var
-  Token: String;
-  Attri: TSynHighlighterAttributes;
-begin
-  actCopyCode.Enabled := False;
-  if not (pmTextMenu.PopupComponent is TSynEdit) then
-    Exit;
-
-  var Editor := TSynEdit(pmTextMenu.PopupComponent);
-  var BC := Editor.CaretXY;
-
-  Editor.GetHighlighterAttriAtRowCol(BC, Token, Attri);
-  actCopyCode.Enabled := (Resources.SynMultiSyn.CurrScheme >= 0) and
-    not Editor.Lines[BC.Line - 1].StartsWith('```');
 end;
 
 procedure TLLMChatForm.SetColorScheme;

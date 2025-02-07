@@ -149,11 +149,11 @@ type
     procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
     function GetCodeBlock(Editor: TSynEdit): string;
     procedure DisplayTopicTitle(Title: string);
-    procedure DisplayQA(const Prompt, Answer: string);
+    procedure DisplayQA(const Prompt, Answer, Reason: string);
     procedure ClearConversation;
     procedure DisplayActiveChatTopic;
     procedure SetQuestionTextHint;
-    procedure OnLLMResponse(Sender: TObject; const Prompt, Answer: string);
+    procedure OnLLMResponse(Sender: TObject; const Prompt, Answer, Reason: string);
     procedure OnLLMError(Sender: TObject; const Error: string);
   public
     LLMChat: TLLMChat;
@@ -250,6 +250,8 @@ const
           border-left: 3px solid #ccc;
           padding-left: 10px;
           margin: 10px 0;
+          max-height: 400px;
+          overflow-y: auto;
         }
     </style>
 
@@ -541,7 +543,7 @@ begin
   StyleForm;
 end;
 
-procedure TLLMChatForm.DisplayQA(const Prompt, Answer: string);
+procedure TLLMChatForm.DisplayQA(const Prompt, Answer, Reason: string);
 const
   QAScriptCode = '''
   var question = `%s`;
@@ -550,11 +552,25 @@ const
   Prism.highlightAll();
   window.scroll(0,100000);
   ''';
+  ReasonTemplate = '''
+  <details>
+  <summary><b>Reasoning</b></summary>
+  <blockquote>%s</blockquote>
+  </details>
+  <p>
+  ''';
 begin
   if not FBrowserReady then Exit;
 
   var PromptHtml := MarkdownToHTML(Prompt);
   var AnswerHtml := MarkdownToHTML(Answer);
+
+  if Reason <> '' then
+  begin
+    var ReasonHtml := MarkdownToHTML(Reason).Trim;
+    ReasonHtml := Format(ReasonTemplate, [ReasonHtml]);
+    AnswerHtml := ReasonHtml + AnswerHtml;
+  end;
   EdgeBrowser.ExecuteScript(Format(QAScriptCode, [PromptHtml, AnswerHtml]));
 end;
 
@@ -572,7 +588,7 @@ begin
   DisplayTopicTitle(LLMChat.ActiveTopic.Title);
 
   for var QAItem in LLMChat.ActiveTopic.QAItems do
-    DisplayQA(QAItem.Prompt, QAItem.Answer);
+    DisplayQA(QAItem.Prompt, QAItem.Answer, QAItem.Reason);
 
   if SynQuestion.HandleAllocated then
     synQuestion.SetFocus;
@@ -663,9 +679,9 @@ begin
 end;
 
 procedure TLLMChatForm.OnLLMResponse(Sender: TObject; const Prompt,
-  Answer: string);
+  Answer, Reason: string);
 begin
-  DisplayQA(Prompt, Answer);
+  DisplayQA(Prompt, Answer, Reason);
   synQuestion.Clear;
 end;
 

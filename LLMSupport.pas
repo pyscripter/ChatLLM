@@ -56,7 +56,8 @@ type
   TQAItem = record
     Prompt: string;
     Answer: string;
-    constructor Create(const AQuestion, AnAnswer: string);
+    Reason: string;
+    constructor Create(const AQuestion, AnAnswer, Reason: string);
   end;
 
   TChatTopic = record
@@ -65,7 +66,7 @@ type
   end;
   TChatTopics = TArray<TChatTopic>;
 
-  TOnLLMResponseEvent = procedure(Sender: TObject; const Prompt, Answer: string) of object;
+  TOnLLMResponseEvent = procedure(Sender: TObject; const Prompt, Answer, Reason: string) of object;
   TOnLLMErrorEvent = procedure(Sender: TObject; const Error: string) of object;
 
   TLLMBase = class
@@ -85,7 +86,7 @@ type
     FSerializer: TJsonSerializer;
     procedure DoResponseCompleted(const AResponse: IHTTPResponse); virtual;
     procedure DoResponseCreated(const AResponse: IHTTPResponse); virtual;
-    procedure DoResponseOK(const Msg: string); virtual;
+    procedure DoResponseOK(const Msg, Reason: string); virtual;
     function RequestParams(const Prompt: string; const Suffix: string = ''): string; virtual; abstract;
     // Gemini support
     procedure AddGeminiSystemPrompt(Params: TJSONObject);
@@ -112,7 +113,7 @@ type
 
   TLLMChat = class(TLLMBase)
   protected
-    procedure DoResponseOK(const Msg: string); override;
+    procedure DoResponseOK(const Msg, Reason: string); override;
     function RequestParams(const Prompt: string; const Suffix: string = ''): string; override;
   public
     ActiveTopicIndex: Integer;
@@ -305,7 +306,7 @@ begin
   // Do Nothing
 end;
 
-procedure TLLMBase.DoResponseOK(const Msg: string);
+procedure TLLMBase.DoResponseOK(const Msg, Reason: string);
 begin
   // Do nothing
 end;
@@ -351,23 +352,10 @@ end;
 procedure TLLMBase.OnRequestCompleted(const Sender: TObject;
   const AResponse: IHTTPResponse);
 
-  function ReasoningToMD(Reason: string): string;
-  begin
-     var Lines := Reason.Split([#13#10, #10]);
-     for var I := Low(Lines) to High(Lines) do
-       Lines[I] := '> ' + Lines[I];
-
-     Result := string.Join(sLineBreak, Lines);
-     Result :=
-       '***Reasoning***' + sLineBreak +
-       Result + SLineBreak + sLineBreak +
-       '***Answer***'+ sLineBreak + sLineBreak;
-  end;
-
 var
   ResponseData: TBytes;
   ResponseOK: Boolean;
-  ErrMsg, Msg, Reasoning: string;
+  ErrMsg, Msg, Reason: string;
 begin
   FHttpResponse := nil;
   DoResponseCompleted(AResponse);
@@ -387,9 +375,8 @@ begin
           etOpenAIChatCompletion:
             begin
               ResponseOK := JsonResponse.TryGetValue('choices[0].message.content', Msg);
-              // for DeepSeek R1 model (deepseek-reasoning)
-              if JsonResponse.TryGetValue('choices[0].message.reasoning_content', Reasoning) then
-                 Msg := ReasoningToMD(Reasoning) + Msg;
+              // for DeepSeek R1 model (deepseek-Reason)
+              JsonResponse.TryGetValue('choices[0].message.reasoning_content', Reason);
             end;
           etOpenAICompletion:
             ResponseOK := JsonResponse.TryGetValue('choices[0].text', Msg);
@@ -408,9 +395,9 @@ begin
 
   if ResponseOK then
   begin
-    DoResponseOK(Msg);
+    DoResponseOK(Msg, Reason);
     if Assigned(FOnLLMResponse)  then
-      FOnLLMResponse(Self, FLastPrompt, Msg);
+      FOnLLMResponse(Self, FLastPrompt, Msg, Reason);
   end
   else
   begin
@@ -484,9 +471,9 @@ begin
   ActiveTopicIndex := 0;
 end;
 
-procedure TLLMChat.DoResponseOK(const Msg: string);
+procedure TLLMChat.DoResponseOK(const Msg, Reason: string);
 begin
-  ChatTopics[ActiveTopicIndex].QAItems := ActiveTopic.QAItems + [TQAItem.Create(FLastPrompt, Msg)];
+  ChatTopics[ActiveTopicIndex].QAItems := ActiveTopic.QAItems + [TQAItem.Create(FLastPrompt, Msg, Reason)];
 end;
 
 procedure TLLMChat.LoadChat(const FName: string);
@@ -641,10 +628,11 @@ end;
 
 { TQAItem }
 
-constructor TQAItem.Create(const AQuestion, AnAnswer: string);
+constructor TQAItem.Create(const AQuestion, AnAnswer, Reason: string);
 begin
   Self.Prompt := AQuestion;
   Self.Answer := AnAnswer;
+  Self.Reason := Reason;
 end;
 
 { TLLMSettings }

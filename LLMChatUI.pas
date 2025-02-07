@@ -221,6 +221,9 @@ const
         ::-webkit-scrollbar-track {
             background: %s; /* Background of the scrollbar track */
         }
+        ::-webkit-scrollbar-corner {
+            background: %0:s; /* The corner between scrollbars */
+        }
         ::-webkit-scrollbar-thumb {
             background: #888; /* Color of the scrollbar thumb */
             border-radius: 4px; /* Rounded corners for the scrollbar thumb */

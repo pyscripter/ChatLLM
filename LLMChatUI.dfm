@@ -149,21 +149,26 @@ object LLMChatForm: TLLMChatForm
       object spiNextTopic: TSpTBXItem
         Action = actChatNext
       end
-      object SpTBXSeparatorItem7: TSpTBXSeparatorItem
-      end
-      object spiSave: TSpTBXItem
-        Action = actChatSave
-      end
       object SpTBXSeparatorItem4: TSpTBXSeparatorItem
       end
       object spiTitle: TSpTBXItem
         Action = actTopicTitle
       end
+      object SpTBXSeparatorItem7: TSpTBXSeparatorItem
+      end
+      object spiPrint: TSpTBXItem
+        Action = actPrint
+      end
+      object spiSave: TSpTBXItem
+        Action = actChatSave
+      end
+      object SpTBXSeparatorItem: TSpTBXSeparatorItem
+      end
       object spiCancel: TTBItem
         Action = actCancelRequest
       end
       object SpTBXRightAlignSpacerItem: TSpTBXRightAlignSpacerItem
-        CustomWidth = 543
+        CustomWidth = 506
       end
       object SpTBXSubmenuItem1: TSpTBXSubmenuItem
         Caption = 'Style'
@@ -188,7 +193,7 @@ object LLMChatForm: TLLMChatForm
           ImageIndex = 14
           ImageName = 'deepseek'
           OnClick = mnProviderClick
-          OnDrawImage = LogoDrawImage
+          OnDrawImage = HighlightCheckedImg
         end
         object spiGemini: TSpTBXItem
           Caption = 'Gemini'
@@ -198,7 +203,7 @@ object LLMChatForm: TLLMChatForm
           ImageIndex = 15
           ImageName = 'gemini'
           OnClick = mnProviderClick
-          OnDrawImage = LogoDrawImage
+          OnDrawImage = HighlightCheckedImg
         end
         object spiOpenai: TSpTBXItem
           Caption = 'OpenAI'
@@ -209,7 +214,7 @@ object LLMChatForm: TLLMChatForm
           ImageIndex = 16
           ImageName = 'openai'
           OnClick = mnProviderClick
-          OnDrawImage = LogoDrawImage
+          OnDrawImage = HighlightCheckedImg
         end
         object spiOllama: TSpTBXItem
           Caption = 'Ollama'
@@ -219,7 +224,7 @@ object LLMChatForm: TLLMChatForm
           ImageIndex = 13
           ImageName = 'ollama'
           OnClick = mnProviderClick
-          OnDrawImage = LogoDrawImage
+          OnDrawImage = HighlightCheckedImg
         end
         object SpTBXSeparatorItem6: TSpTBXSeparatorItem
         end
@@ -371,6 +376,11 @@ object LLMChatForm: TLLMChatForm
         CollectionIndex = 17
         CollectionName = 'Paste'
         Name = 'Paste'
+      end
+      item
+        CollectionIndex = 18
+        CollectionName = 'Print'
+        Name = 'Print'
       end>
     ImageCollection = Resources.LLMImages
     Width = 24
@@ -461,6 +471,14 @@ object LLMChatForm: TLLMChatForm
       ImageIndex = 17
       ImageName = 'Paste'
       ShortCut = 16470
+    end
+    object actPrint: TAction
+      Category = 'Chat'
+      Caption = 'Print'
+      Hint = 'Print chat topic'
+      ImageIndex = 18
+      ImageName = 'Print'
+      OnExecute = actPrintExecute
     end
   end
   object pmAsk: TSpTBXPopupMenu

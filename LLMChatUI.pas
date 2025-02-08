@@ -34,7 +34,6 @@ uses
   SynEdit,
   SynEditHighlighter,
   SynHighlighterMulti,
-  SVGIconImage,
   SpTBXSkins,
   SpTBXItem,
   SpTBXControls,
@@ -98,6 +97,9 @@ type
     spiDeepSeek: TSpTBXItem;
     spiTemperature: TSpTBXEditItem;
     EdgeBrowser: TEdgeBrowser;
+    actPrint: TAction;
+    SpTBXSeparatorItem: TSpTBXSeparatorItem;
+    spiPrint: TSpTBXItem;
     procedure actChatSaveExecute(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -110,6 +112,7 @@ type
     procedure actChatNextExecute(Sender: TObject);
     procedure actChatPreviousExecute(Sender: TObject);
     procedure actChatRemoveExecute(Sender: TObject);
+    procedure actPrintExecute(Sender: TObject);
     procedure actTopicTitleExecute(Sender: TObject);
     procedure ChatActionListUpdate(Action: TBasicAction; var Handled: Boolean);
     procedure EdgeBrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser;
@@ -119,7 +122,7 @@ type
     procedure EdgeBrowserWebMessageReceived(Sender: TCustomEdgeBrowser; Args:
         TWebMessageReceivedEventArgs);
     procedure mnProviderClick(Sender: TObject);
-    procedure LogoDrawImage(Sender: TObject; ACanvas: TCanvas; State:
+    procedure HighlightCheckedImg(Sender: TObject; ACanvas: TCanvas; State:
         TSpTBXSkinStatesType; const PaintStage: TSpTBXPaintStage; var AImageList:
         TCustomImageList; var AImageIndex: Integer; var ARect: TRect; var
         PaintDefault: Boolean);
@@ -131,18 +134,18 @@ type
     FCodeBlocksRE: TRegEx;
     FBrowserReady: Boolean;
     FMarkdownProcessor: TMarkdownProcessor;
-    procedure StyleWebPage;
-    procedure StyleForm;
-    procedure SetColorScheme;
+    procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
+    procedure ClearConversation;
+    procedure DisplayActiveChatTopic;
+    procedure DisplayQA(const Prompt, Answer, Reason: string);
+    procedure DisplayTopicTitle(Title: string);
     procedure LoadBoilerplate;
     function MarkdownToHTML(const MD: string): string;
     function NavigateToString(Html: string): Boolean;
-    procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
-    procedure DisplayTopicTitle(Title: string);
-    procedure DisplayQA(const Prompt, Answer, Reason: string);
-    procedure ClearConversation;
-    procedure DisplayActiveChatTopic;
+    procedure SetBrowserColorScheme;
     procedure SetQuestionTextHint;
+    procedure StyleForm;
+    procedure StyleWebPage;
     procedure OnLLMResponse(Sender: TObject; const Prompt, Answer, Reason: string);
     procedure OnLLMError(Sender: TObject; const Error: string);
   public
@@ -170,7 +173,6 @@ uses
 resourcestring
   SQuestionHintValid = 'Ask me anything';
   SQuestionHintInvalid = 'Chat setup incomplete';
-
 
 
 {$REGION 'HTML templates'}
@@ -220,6 +222,12 @@ const
         }
         ::-webkit-scrollbar-thumb:hover {
             background: %s; /* Color of the scrollbar thumb on hover */
+        }
+        @media print {
+            @page {
+                @bottom-center {
+                    content: "Page " counter(page);
+                    }
         }
         body {
             background-color: %0:s;
@@ -503,8 +511,32 @@ begin
   Result := string.Join(#13#10, Lines);
 end;
 
-{$ENDREGION 'Utility functions'}
+function HTMLEncode(const Str: string): string;
+var
+  Chr: Char;
+  SB: TStringBuilder;
+begin
+  if Str = '' then Exit('');
 
+  SB := TStringBuilder.Create(Length(Str) * 2); // Initial capacity estimate
+  try
+    for Chr in Str do
+    begin
+      case Chr of
+        '&': SB.Append('&amp;');
+        '"': SB.Append('&quot;');
+        '<': SB.Append('&lt;');
+        '>': SB.Append('&gt;');
+        else SB.Append(Chr);
+      end;
+    end;
+    Result := SB.ToString;
+  finally
+    SB.Free;
+  end;
+end;
+
+{$ENDREGION 'Utility functions'}
 
 procedure TLLMChatForm.actChatSaveExecute(Sender: TObject);
 begin
@@ -593,9 +625,6 @@ begin
   FCodeBlocksRE.Study([preJIT]);
   FMarkdownProcessor := TMarkdownProcessor.CreateDialect(mdCommonMark);
   EdgeBrowser.CreateWebView;
-
-  synQuestion.Font.Color := StyleServices.GetSystemColor(clWindowText);
-  synQuestion.Color := StyleServices.GetSystemColor(clWindow);
 
   Resources.SynMultiSyn.Schemes[0].MarkerAttri.Foreground :=
     Resources.SynPythonSyn.IdentifierAttri.Foreground;
@@ -732,6 +761,11 @@ begin
   DisplayActiveChatTopic;
 end;
 
+procedure TLLMChatForm.actPrintExecute(Sender: TObject);
+begin
+  EdgeBrowser.ExecuteScript('window.print();');
+end;
+
 procedure TLLMChatForm.actTopicTitleExecute(Sender: TObject);
 var
   Title: string;
@@ -769,7 +803,7 @@ begin
   begin
     FBrowserReady := True;
     StyleWebPage;
-    SetColorScheme;
+    SetBrowserColorScheme;
     LoadBoilerplate;
   end;
 end;
@@ -780,7 +814,7 @@ procedure TLLMChatForm.EdgeBrowserNavigationCompleted(Sender:
 begin
   //  Called after LoadBoireplate loads the basic Web page
   if not IsSuccess then
-    ShowMessage('Error in loading html in the browser¨' + IntToStr(WebErrorStatus));
+    ShowMessage('Error in loading html in the browser: ' + IntToStr(WebErrorStatus));
   DisplayActiveChatTopic;
 end;
 
@@ -791,6 +825,19 @@ var
 begin
   Args.ArgsInterface.TryGetWebMessageAsString(ArgsString);
   Clipboard.AsText := ArgsString;
+end;
+
+procedure TLLMChatForm.HighlightCheckedImg(Sender: TObject; ACanvas: TCanvas;
+    State: TSpTBXSkinStatesType; const PaintStage: TSpTBXPaintStage; var
+    AImageList: TCustomImageList; var AImageIndex: Integer; var ARect: TRect;
+    var PaintDefault: Boolean);
+begin
+  if (PaintStage = pstPrePaint) and (Sender as TSpTBXItem).Checked then
+  begin
+    ACanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
+    ACanvas.FillRect(ARect);
+  end;
+  PaintDefault := True;
 end;
 
 procedure TLLMChatForm.mnProviderClick(Sender: TObject);
@@ -808,56 +855,20 @@ begin
   SetQuestionTextHint;
 end;
 
+procedure TLLMChatForm.LoadBoilerplate;
+// Loads the basic web pages
+begin
+  NavigateToString(Format(Boilerplate,
+    [MainStyleSheet + CodeStyleSheet + QAStyleSheet,
+     SvgIcons, '', JSScripts]));
+end;
+
 function TLLMChatForm.NavigateToString(Html: string): Boolean;
 begin
   if not FBrowserReady then Exit(False);
 
   EdgeBrowser.NavigateToString(Html);
   Result := True;
-end;
-
-procedure TLLMChatForm.SetColorScheme;
-var
-  Profile: ICoreWebView2Profile;
-  Scheme: COREWEBVIEW2_PREFERRED_COLOR_SCHEME;
-begin
-  if IsStyleDark then
-    Scheme := COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK
-  else
-    Scheme := COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT;
-  (EdgeBrowser.DefaultInterface as ICoreWebView2_13).Get_Profile(Profile);
-  Profile.Set_PreferredColorScheme(Scheme);
-end;
-
-procedure TLLMChatForm.SetQuestionTextHint;
-begin
-  var Validation := LLMChat.ValidateSettings;
-
-  if Validation = svValid then
-    synQuestion.TextHint := SQuestionHintValid
-  else
-    synQuestion.TextHint := SQuestionHintInvalid + ': ' + LLMChat.ValidationErrMsg(Validation);
-end;
-
-procedure TLLMChatForm.LoadBoilerplate;
-// Loads the basic web pages
-begin
-  NavigateToString(Format(Boilerplate,
-    [MainStyleSheet + CodeStyleSheetTemplate + QAStyleSheet,
-     SvgIcons, '', JSScripts]));
-end;
-
-procedure TLLMChatForm.LogoDrawImage(Sender: TObject; ACanvas: TCanvas;
-    State: TSpTBXSkinStatesType; const PaintStage: TSpTBXPaintStage; var
-    AImageList: TCustomImageList; var AImageIndex: Integer; var ARect: TRect;
-    var PaintDefault: Boolean);
-begin
-  if (PaintStage = pstPrePaint) and (Sender as TSpTBXItem).Checked then
-  begin
-    ACanvas.Brush.Color := StyleServices.GetSystemColor(clHighlight);
-    ACanvas.FillRect(ARect);
-  end;
-  PaintDefault := True;
 end;
 
 function TLLMChatForm.MarkdownToHTML(const MD: string): string;
@@ -875,6 +886,8 @@ begin
       Inc(FBlockCount);
       var Lang := Match.Groups[1].Value;
       var Code := RemoveCommonIndentation(Match.Groups[2].Value);
+      Code := HTMLEncode(Code);
+
       if Lang = 'delphi' then
         Lang := 'pascal';
       var LangId := Lang;
@@ -899,12 +912,35 @@ begin
   Result := Result.Replace('`', '\`');
 end;
 
+procedure TLLMChatForm.SetBrowserColorScheme;
+var
+  Profile: ICoreWebView2Profile;
+  Scheme: COREWEBVIEW2_PREFERRED_COLOR_SCHEME;
+begin
+  if IsStyleDark then
+    Scheme := COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK
+  else
+    Scheme := COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT;
+  (EdgeBrowser.DefaultInterface as ICoreWebView2_13).Get_Profile(Profile);
+  Profile.Set_PreferredColorScheme(Scheme);
+end;
+
+procedure TLLMChatForm.SetQuestionTextHint;
+begin
+  var Validation := LLMChat.ValidateSettings;
+
+  if Validation = svValid then
+    synQuestion.TextHint := SQuestionHintValid
+  else
+    synQuestion.TextHint := SQuestionHintInvalid + ': ' + LLMChat.ValidationErrMsg(Validation);
+end;
+
 procedure TLLMChatForm.spiSettingsInitPopup(Sender: TObject; PopupView:
     TTBView);
 begin
   case LLMChat.Providers.Provider of
-    llmProviderOpenAI: spiOpenai.Checked := True;
     llmProviderDeepSeek: spiDeepSeek.Checked := True;
+    llmProviderOpenAI: spiOpenai.Checked := True;
     llmProviderGemini: spiGemini.Checked := True;
     llmProviderOllama: spiOllama.Checked := True;
   end;

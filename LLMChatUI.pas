@@ -213,31 +213,33 @@ const
         ::-webkit-scrollbar-track {
             background: %s; /* Background of the scrollbar track */
         }
-        ::-webkit-scrollbar-corner {
-            background: %0:s; /* The corner between scrollbars */
-        }
         ::-webkit-scrollbar-thumb {
-            background: #888; /* Color of the scrollbar thumb */
+            background: %s; /* Color of the scrollbar thumb */
             border-radius: 4px; /* Rounded corners for the scrollbar thumb */
         }
         ::-webkit-scrollbar-thumb:hover {
             background: %s; /* Color of the scrollbar thumb on hover */
+        }
+        ::-webkit-scrollbar-corner {
+            background: %0:s; /* The corner between scrollbars */
         }
         @media print {
             @page {
                 @bottom-center {
                     content: "Page " counter(page);
                     }
+            }
         }
+
         body {
             background-color: %0:s;
-            color: %2:s;
+            color: %3:s;
             font-family: Aptos, Calibri, Arial, sans-serif;
             line-height: 1.4;
             margin: 10px;
         }
         a {
-            color: %3:s;
+            color: %4:s;
             text-decoration: none;
         }
         a:hover {
@@ -972,25 +974,29 @@ procedure TLLMChatForm.StyleWebPage;
 var
   LinkColor: TColor;
   CodeHeaderBkg, CodeHeaderFg: string;
-  ThumbHoverColor: string;
+  ThumbColor, ThumbHoverColor: string;
 begin
   if IsStyleDark then
   begin
     LinkColor :=  TColors.LightBlue;
     CodeHeaderBkg := '#2d2d2d';
     CodeHeaderFg := '#f4f4f4';
-    ThumbHoverColor := '#aaa';
+    ThumbColor := '#666';
+    ThumbHoverColor := '#888';
   end
   else
   begin
     LinkColor := clBlue;
     CodeHeaderBkg := '#f4f4f4';
     CodeHeaderFg := '#333';
-    ThumbHoverColor := '#555';
+    ThumbColor := '#ccc';
+    ThumbHoverColor := '#999';
   end;
 
+  // Style the main sheet
   MainStyleSheet := Format(MainStyleSheetTemplate, [
     ColorToHtml(StyleServices.GetSystemColor(clWindow)),
+    ThumbColor,
     ThumbHoverColor,
     ColorToHtml(StyleServices.GetSystemColor(clWindowText)),
     ColorToHtml(LinkColor)]);

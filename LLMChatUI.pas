@@ -908,6 +908,8 @@ begin
 
   if Result.StartsWith('<p>') then
     Delete(Result, 1, 3);
+  // Escape for JavaScript template strings (within backticks)
+  Result := Result.Replace('\', '\\');
   Result := Result.Replace('$', '\$');
   Result := Result.Replace('`', '\`');
 end;
